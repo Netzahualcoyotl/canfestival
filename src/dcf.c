@@ -81,9 +81,38 @@ UNS8 check_and_start_node(CO_Data* d, UNS8 nodeId)
     return 2;
 }
 
-static void start_and_seek_node(CO_Data* d, UNS8 nodeId){
+/**
+** @brief Tell if a node is expected to be configured and started by us,
+**        i.e. if it has a non-empty concise DCF entry in 0x1F22.
+**
+** @param d
+** @param nodeId
+*/
+static UNS8 node_has_dcf(CO_Data* d, UNS8 nodeId)
+{
+    UNS32 errorCode;
+    ODCallback_t *Callback;
+    const indextable *odentry;
+    /* Sub-index 0 holds the highest sub-index, not the DCF of a node */
+    if(nodeId == 0)
+        return 0;
+    odentry = (*d->scanIndexOD)(0x1F22, &errorCode, &Callback);
+    if(errorCode != OD_SUCCESSFUL)
+        return 0;
+    if(nodeId >= odentry->bSubCount)
+        return 0;
+    return odentry->pSubindex[nodeId].size != 0;
+}
+
+/**
+** @brief Configure and start every node still waiting, then go operational
+**        once all expected slaves are up.
+**
+** @param d
+*/
+static void seek_nodes(CO_Data* d)
+{
    UNS8 node;
-   start_node(d,nodeId);
    /* Look for other nodes waiting to be started */
    for(node = 0 ; node<NMT_MAX_NODE_ID ; node++){
        if(d->NMTable[node] != Initialisation)
@@ -91,8 +120,22 @@ static void start_and_seek_node(CO_Data* d, UNS8 nodeId){
        if(check_and_start_node(d, node) == 2)
            return;
    }
+   /* Some expected slaves may not have sent their boot-up yet : stay in
+    * pre-operational rather than producing SYNC and PDO for a node that
+    * is still resetting. */
+   for(node = 0 ; node<NMT_MAX_NODE_ID ; node++){
+       if(node == *d->bDeviceNodeId)
+           continue;
+       if(node_has_dcf(d, node) && d->NMTable[node] != Operational)
+           return;
+   }
    /* No more node to start. Let's start our own node */
    setState(d, Operational);
+}
+
+static void start_and_seek_node(CO_Data* d, UNS8 nodeId){
+   start_node(d,nodeId);
+   seek_nodes(d);
 }
 
 /**
@@ -155,6 +198,10 @@ dcferror:
     MSG_ERR(0x1A01, "SDO error in consise DCF", abortCode);
     MSG_WAR(0x2A02, "server node : ", nodeId);
     d->NMTable[nodeId] = Unknown_state;
+    /* Do not stay stuck in a non-INIT dcf_status, or no further boot-up
+     * would ever be handled again. */
+    d->dcf_status = DCF_STATUS_INIT;
+    seek_nodes(d);
 }
 
 /**
