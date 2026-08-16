@@ -286,6 +286,8 @@ void heartbeatInit(CO_Data* d)
 {
 
   UNS8 index; /* Index to scan the table of heartbeat consumers */
+  /* Drop the alarms and handles a previous init may have left behind */
+  heartbeatStop(d);
   RegisterSetODentryCallBack(d, 0x1017, 0x00, &OnHeartbeatProducerUpdate);
 
   d->toggle = 0;
@@ -310,6 +312,8 @@ void heartbeatInit(CO_Data* d)
 void nodeguardInit(CO_Data* d)
 {
 
+  /* Drop the alarm and handle a previous init may have left behind */
+  nodeguardStop(d);
   RegisterSetODentryCallBack(d, 0x100C, 0x00, &OnNodeGuardUpdate);
   RegisterSetODentryCallBack(d, 0x100D, 0x00, &OnNodeGuardUpdate);
 

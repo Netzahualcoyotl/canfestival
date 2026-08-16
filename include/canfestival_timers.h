@@ -73,6 +73,16 @@ TIMER_HANDLE SetAlarm(CO_Data* d, UNS32 id, TimerCallback_t callback, TIMEVAL va
  */
 TIMER_HANDLE DelAlarm(TIMER_HANDLE handle);
 
+/**
+ * @ingroup timer
+ * @brief Free every alarm row.
+ *
+ * To be called when the timer loop is (re)started, so that a new run does not
+ * inherit alarms armed by a previous one. Every handle obtained from SetAlarm
+ * before the call becomes invalid.
+ */
+void ResetAlarms(void);
+
 void TimeDispatch(void);
 
 /**

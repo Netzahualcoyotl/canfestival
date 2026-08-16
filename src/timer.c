@@ -115,6 +115,25 @@ TIMER_HANDLE DelAlarm(TIMER_HANDLE handle)
 }
 
 /*!
+**  -----  Use this to forget every alarm ----
+**
+** To be called when the timer loop is (re)started : a new run must not
+** inherit rows armed by a previous one, and every handle handed out so far
+** becomes meaningless.
+**
+**/
+void ResetAlarms(void)
+{
+	TIMER_HANDLE row_number;
+
+	for(row_number = 0 ; row_number < MAX_NB_TIMER ; row_number++)
+		timers[row_number].state = TIMER_FREE;
+
+	total_sleep_time = TIMEVAL_MAX;
+	last_timer_raw = -1;
+}
+
+/*!
 ** ------  TimeDispatch is called on each timer expiration ----
 **
 **/

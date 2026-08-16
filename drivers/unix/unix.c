@@ -304,6 +304,8 @@ void StopTimerLoop(TimerCallback_t exitfunction)
 void StartTimerLoop(TimerCallback_t init_callback)
 {
 	EnterMutex();
+	// A new run must not inherit alarms armed by a previous one.
+	ResetAlarms();
 	// At first, TimeDispatch will call init_callback.
 	SetAlarm(NULL, 0, init_callback, 0, 0);
 	LeaveMutex();
