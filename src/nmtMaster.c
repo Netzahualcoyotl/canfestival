@@ -56,6 +56,19 @@ UNS8 masterSendNMTstateChange(CO_Data* d, UNS8 Node_ID, UNS8 cs)
   m.data[0] = cs;
   m.data[1] = Node_ID;
 
+  /* A node we reset has no known state until it sends its boot-up. Keeping
+     the previous one would let us consider a node that is being reset as
+     already configured and started. */
+  if(cs == NMT_Reset_Node || cs == NMT_Reset_Comunication){
+    if(Node_ID == 0){ /* NMT broadcast */
+      UNS8 i;
+      for(i = 0 ; i < NMT_MAX_NODE_ID ; i++)
+        d->NMTable[i] = Unknown_state;
+    }else if(Node_ID < NMT_MAX_NODE_ID){
+      d->NMTable[Node_ID] = Unknown_state;
+    }
+  }
+
   return canSend(d->canHandle,&m);
 }
 
