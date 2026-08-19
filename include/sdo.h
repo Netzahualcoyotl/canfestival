@@ -229,6 +229,17 @@ UNS8 getSDOlineOnUse (CO_Data* d, UNS8 CliServNbr, UNS8 whoami, UNS8 *line);
  */
 UNS8 getSDOlineToClose (CO_Data* d, UNS8 CliServNbr, UNS8 whoami, UNS8 *line);
 
+/**
+ * @brief Search the SDO client object which is configured to talk to a node.
+ * @param *d Pointer on a CAN object data structure
+ * @param nodeId Node Id of the slave
+ * @return
+ *           - 0xFF : No SDO client available
+ *           - 0xFE : Not found
+ *           - otherwise : SDO client number, as expected by closeSDOtransfer()
+ */
+UNS8 GetSDOClientFromNodeId (CO_Data* d, UNS8 nodeId);
+
 /** 
  * @brief Close a transmission.
  * @param *d Pointer on a CAN object data structure

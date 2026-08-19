@@ -48,8 +48,6 @@
 
 /*Internals prototypes*/
 
-UNS8 GetSDOClientFromNodeId( CO_Data* d, UNS8 nodeId );
-
 /*!
  ** Called by writeNetworkDict
  **
